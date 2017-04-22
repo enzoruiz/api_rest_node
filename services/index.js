@@ -14,7 +14,34 @@ function createToken(user){
 		exp: moment().add(14, 'days').unix()
 	}
 
-	jwt.encode(payload, config.SECRET_TOKEN)
+	return jwt.encode(payload, config.SECRET_TOKEN)
 }
 
-module.exports = createToken
+function decodeToken(token){
+	const decoded = new Promise((resolve, reject) => {
+		try{
+			const payload = jwt.decode(token, config.SECRET_TOKEN)
+
+			if(payload.exp <= moment().unix()){
+				reject({
+					status: 401,
+					mensaje: 'El token a expirado'
+				})
+			}
+
+			resolve(payload.sub)
+		} catch(err){
+			reject({
+				status: 500,
+				mensaje: 'Token invalido'
+			})
+		}
+	})
+
+	return decoded
+}
+
+module.exports = {
+	createToken,
+	decodeToken
+}
